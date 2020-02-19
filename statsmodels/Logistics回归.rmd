@@ -1,0 +1,177 @@
+---
+title: "Logistic回归分析"
+author: "SXM"
+date: "2020-02"
+output:
+  bookdown::html_document2:
+    fig_caption: true
+    highlight: haddock
+    keep_md: true
+    md_extensions: +east_asian_line_breaks
+    number_sections: true
+    pandoc_args:
+    - --filter
+    - pandoc-crossref
+    - -M
+    - eqnPrefix=
+    seq_numbering: false
+    toc: true
+  bookdown::pdf_document2:
+    keep_tex: true
+    latex_engine: xelatex
+    md_extensions: +east_asian_line_breaks
+    pandoc_args:
+    - --listing
+    - --filter
+    - pandoc-crossref
+    toc: false
+  slidy_presentation:
+    highlight: haddock
+  bookdown::word_document2:
+    fig_caption: true
+    md_extensions: +east_asian_line_breaks
+    pandoc_args:
+    - --filter
+    - pandoc-crossref
+    reference_docx: ./style/word-styles-02.docx
+  ioslides_presentation:
+    highlight: haddock
+    slide_level: 3
+  beamer_presentation:
+    keep_tex: true
+    latex_engine: xelatex
+    toc: true
+    pandoc_args:
+    - --listing
+    - --filter
+    - pandoc-crossref
+    slide_level: 3
+    template: ./style/beamer-template.tex
+csl: ./style/chinese-gb7714-2005-numeric.csl
+css: ./style/markdown.css
+bibliography: Bibfile.bib
+eqnPrefixTemplate: ($$i$$)
+institute: 中南财经政法大学统计与数学学院
+link-citations: true
+linkReferences: true
+chapters: true
+tableEqns: false
+autoEqnLabels: false
+---
+
+
+```{r setup, echo=F, purl=F}
+knitr::opts_knit$set(root.dir = getwd())
+knitr::opts_chunk$set(echo = TRUE, results = 'hide')
+knitr::opts_chunk$set(warning = FALSE, message=FALSE)
+knitr::opts_chunk$set(out.height="0.5\\textwidth", fig.width=5, fig.height=3, fig.align="center")
+```
+
+```{r prepare, echo=F, purl=F}
+rm(list=ls())
+options(digits=4)
+options(scipen=100)
+graphics.off()
+Sys.setlocale("LC_ALL", "Chinese")
+```
+
+选择biopsy.csv乳腺癌患者的活检数据来进行logistics回归分析，分析预测患者是否患有乳腺癌。各变量表示含义如下：
+
+|       |           |    |            |
+|-------|-----------|----|------------|
+| ID    | 样本编号      | V5 |  单个上皮细胞大小  |
+| V1    | 肿块厚度      | V6 | 裸核         |
+| V2    | 细胞大小的均匀性  | V7 |  乏味染色体     |
+| V3    | 细胞形状的均匀性  | V8 | 正常核        |
+| V4    | 边际附着力     | V9 | 有丝分裂       |
+| Class | 肿瘤类别      |    |            |
+
+# 准备数据
+```{python}
+import numpy as np 
+import statsmodels.api as sm 
+import statsmodels.formula.api as smf 
+import pandas as pd 
+from sklearn.cross_validation import train_test_split
+from sklearn import metrics
+
+dat = sm.datasets.get_rdataset("biopsy", site="F:/github_repo/Rdatasets", package="MASS").data
+dat.head()
+dat=dat.rename(columns={'class':'Class'}) 
+dat=dat.iloc[:,1:] #去除ID列
+dat.dtypes #查看数据类型
+dat.isnull().sum() #查看各变量缺失情况
+dat=dat.dropna() #删除缺失值所在的行
+dat.shape
+dat.describe()
+```
+
+删除不需要进行分析的ID列，查看各变量数据类型可以得知，除了Class变量外，其余均为数值型变量，
+需要对Class创建哑变量。查看各变量的缺失情况可知，V6(裸核)有缺失值，我们删除缺失值所在的行，
+再进行建模。
+
+肿瘤类别分为'benign'(良性)和'malignant'(恶性)，将分类型变量转为二值型因子，'benign'为0，
+'malignant'为1.
+
+```{python}
+Class_mapping = {'benign':0,'malignant':1}
+dat['Class']=dat['Class'].map(Class_mapping)
+dat.head()
+#dat=pd.get_dummies(dat)  虚拟变量
+dat['Class'].value_counts()  #分类频数统计
+```
+
+
+# Logistic回归建模
+## 创建训练集和测试集
+
+```{python}
+#将数据集拆分为训练集和测试集
+x=dat.drop('Class',axis=1)
+y=dat['Class']
+#训练集与测试集的比例为75%和25%
+x_train, x_test, y_train, y_test = train_test_split(x, y, train_size = 0.75, random_state=0)
+```
+
+## 建模
+```{python}
+#根据训练集构建Logistic分类器
+results1 = smf.Logit(y_train,x_train).fit()
+print(results1.summary())
+```
+
+经过8次迭代后，模型系数的计算实现收敛，完成Logistic分类器的创建，但在0.05显著性水平下，
+V3，V4的P值分别为0.435、0.135均不显著，拟合优度仅为0.442，将V3,V4剔除后，再做一次Logistic模型。
+
+```{python}
+results2= smf.logit('Class~V1+V2+V5+V6+V7+V8+V9',data = pd.concat([y_train,x_train], axis = 1)).fit()
+print(results2.summary())
+```
+
+第二次logistic回归结果显示在0.05显著性水平下，V2,V5,V7,V9不显著，模型拟合优度为0.8863。
+剔除这些变量后，再做一次logistic回归.
+
+```{python}
+results3= smf.logit('Class~V1+V6+V8',data = pd.concat([y_train,x_train], axis = 1)).fit()
+print(results3.summary())
+```
+
+回归结果显示，所有变量均显著，模型拟合优度为0.8469,以Class（肿瘤类别）为响应变量,
+V1(肿块厚度)，V6(裸核)，V8(正常核)为自变量构建的logistic回归模型表达式为：
+$$ln(\frac{p}{1-p})=-8.2111+0.6718V1+0.6751V6+0.6112V8$$
+
+# 模型准确率
+
+```{python}
+#在测试集上预测概率
+prob=results3.predict(exog = x_test.drop(['V2','V3','V4','V5','V7','V9'], axis = 1))
+
+pred = np.where(prob >= 0.5, 1, 0) #以0.5作为阈值
+
+# 根据预测值和实际值构建混淆矩阵
+cm = metrics.confusion_matrix(y_test, pred, labels=[0,1])
+#计算准确率
+accuracy = cm.diagonal().sum()/cm.sum()
+accuracy
+```
+模型准确率为93.58%,说明根据肿块厚度，裸核，正常核这三个变量可以判断出乳腺癌病人是恶性的正确率达93.58%。
