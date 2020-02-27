@@ -1,0 +1,186 @@
+---
+title: "Logistic回归分析"
+author: "SXM"
+date: "2020-02"
+output:
+  bookdown::html_document2:
+    fig_caption: true
+    highlight: haddock
+    keep_md: true
+    md_extensions: +east_asian_line_breaks
+    number_sections: true
+    pandoc_args:
+    - --filter
+    - pandoc-crossref
+    - -M
+    - eqnPrefix=
+    seq_numbering: false
+    toc: true
+  bookdown::pdf_document2:
+    keep_tex: true
+    latex_engine: xelatex
+    md_extensions: +east_asian_line_breaks
+    pandoc_args:
+    - --listing
+    - --filter
+    - pandoc-crossref
+    toc: false
+  slidy_presentation:
+    highlight: haddock
+  bookdown::word_document2:
+    fig_caption: true
+    md_extensions: +east_asian_line_breaks
+    pandoc_args:
+    - --filter
+    - pandoc-crossref
+    reference_docx: ./style/word-styles-02.docx
+  ioslides_presentation:
+    highlight: haddock
+    slide_level: 3
+  beamer_presentation:
+    keep_tex: true
+    latex_engine: xelatex
+    toc: true
+    pandoc_args:
+    - --listing
+    - --filter
+    - pandoc-crossref
+    slide_level: 3
+    template: ./style/beamer-template.tex
+csl: ./style/chinese-gb7714-2005-numeric.csl
+css: ./style/markdown.css
+bibliography: Bibfile.bib
+eqnPrefixTemplate: ($$i$$)
+institute: 中南财经政法大学统计与数学学院
+link-citations: true
+linkReferences: true
+chapters: true
+tableEqns: false
+autoEqnLabels: false
+---
+
+
+```{r setup, echo=F, purl=F}
+knitr::opts_knit$set(root.dir = getwd())
+knitr::opts_chunk$set(echo = TRUE, results = 'hide')
+knitr::opts_chunk$set(warning = FALSE, message=FALSE)
+knitr::opts_chunk$set(out.height="0.5\\textwidth", fig.width=5, fig.height=3, fig.align="center")
+```
+
+```{r prepare, echo=F, purl=F}
+rm(list=ls())
+options(digits=4)
+options(scipen=100)
+graphics.off()
+Sys.setlocale("LC_ALL", "Chinese")
+```
+
+选择biopsy.csv乳腺癌患者的活检数据来进行logistics回归分析，分析预测患者是否患有乳腺癌。各变量表示含义如下：
+
+|       |           |    |            |
+|-------|-----------|----|------------|
+| ID    | 样本编号| V5 |单个上皮细胞大小|
+| V1    | 肿块厚度| V6 | 裸核 |
+| V2    | 细胞大小的均匀性| V7 |乏味染色体|
+| V3    | 细胞形状的均匀性| V8 | 正常核        |
+| V4    | 边际附着力| V9 | 有丝分裂       |
+| Class | 肿瘤类别|| |
+
+# 准备数据
+```{python}
+import pandas as pd 
+import statsmodels.api as sm 
+dat = sm.datasets.get_rdataset("biopsy", site="F:/github_repo/Rdatasets", package="MASS").data
+dat.head()
+dat=dat.rename(columns={'class':'Class'}) 
+dat.isnull().sum() #查看各变量缺失情况
+dat=dat.dropna() #删除缺失值所在的行
+dat=dat.iloc[:,1:] #去除ID列
+dat.dtypes #查看数据类型
+dat.shape
+dat.describe()
+```
+
+删除不需要进行分析的ID列，查看各变量数据类型可以得知，除了Class变量外，其余均为数值型变量，
+需要对Class创建哑变量。查看各变量的缺失情况可知，V6(裸核)有缺失值，我们删除缺失值所在的行，
+再进行建模。
+
+肿瘤类别分为'benign'(良性)和'malignant'(恶性)，将分类型变量转为二值型因子，'benign'为0，
+'malignant'为1.
+
+```{python}
+Class_mapping = {'benign':0,'malignant':1}
+dat['Class']=dat['Class'].map(Class_mapping)
+dat.head()
+#dat=pd.get_dummies(dat)  虚拟变量
+dat['Class'].value_counts()  #分类频数统计
+```
+
+
+# Logistic回归建模
+## 创建训练集和测试集
+
+```{python}
+from sklearn.model_selection import train_test_split
+#将数据集拆分为训练集和测试集
+X=dat.drop('Class',axis=1)
+y=dat['Class']
+#训练集与测试集的比例为75%和25%
+X_train, X_test, y_train, y_test = train_test_split(X, y, train_size = 0.75, random_state=1)
+```
+将数据按照3:1随机分为训练集和测试集分别进行建模和评估。
+
+## 构建模型
+```{python}
+from sklearn.linear_model import LogisticRegression
+logreg=LogisticRegression()
+logreg.fit(X_train,y_train)
+feature_cols=pd.Series(X.columns)
+zipped=zip(feature_cols, logreg.coef_[0])
+list(zipped) #自变量系数
+print(logreg.intercept_) #常数项
+```
+
+## 基于测试集做预测
+```{python}
+y_pred=logreg.predict(X_test)
+y_pred
+```
+
+##  模型准确率
+```{python}
+class_accuracy=logreg.score(X_test,y_test) #分类准确率
+#null_accuracy=max(y_test.mean(), 1 - y_test.mean()) #空准确率
+print(class_accuracy)
+```
+分类准确率为98.2%
+
+## 癌症预测的混淆矩阵
+```{python}
+from sklearn.metrics import confusion_matrix
+confusion=confusion_matrix(y_test,y_pred)
+TP=confusion[1,1]
+FP=confusion[0,1]
+FN=confusion[1,0]
+TN=confusion[0,0]
+print(confusion)
+Accuracy=(TP+TN) / float(TP+TN+FN+FP) #准确率
+Sensitivity=TP / float(TP+FN)#灵敏性，真正识别率
+Specificity=TN / float(TN+FP) #特效性，真负例率
+print(Accuracy,Sensitivity,Specificity)
+```
+该模型的准确率达98%，真正识别率即正确识别的正例数据在实际正例数据中的百分比为95%，正确识别的负例数据在实际负例数据中的百分比100%，进一步说明模型拟合效果好。
+
+## 预测概率
+```{python}
+y_pred_prob=logreg.predict_proba(X_test)[:,1] #预测是恶性癌症的概率
+y_pred_prob
+import matplotlib.pyplot as plt 
+plt.hist(y_pred_prob)
+#plt.xlim(0,1)
+#plt.ylim(0,100)
+plt.xlabel('Predicted probability of malignant')
+plt.ylabel('Frequency')
+```
+从直方图中可以看出判断癌症是恶性的可能性概率基本呈两级分化，接近于1或接近于0，说明根据该模型能有较大把握判断出癌症类型。
+

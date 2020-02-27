@@ -1,0 +1,132 @@
+---
+title: "多元线性回归分析"
+author: "SXM"
+date: "2020-02"
+output:
+  bookdown::html_document2:
+    fig_caption: true
+    highlight: haddock
+    keep_md: true
+    md_extensions: +east_asian_line_breaks
+    number_sections: true
+    pandoc_args:
+    - --filter
+    - pandoc-crossref
+    - -M
+    - eqnPrefix=
+    seq_numbering: false
+    toc: true
+  bookdown::pdf_document2:
+    keep_tex: true
+    latex_engine: xelatex
+    md_extensions: +east_asian_line_breaks
+    pandoc_args:
+    - --listing
+    - --filter
+    - pandoc-crossref
+    toc: false
+  slidy_presentation:
+    highlight: haddock
+  bookdown::word_document2:
+    fig_caption: true
+    md_extensions: +east_asian_line_breaks
+    pandoc_args:
+    - --filter
+    - pandoc-crossref
+    reference_docx: ./style/word-styles-02.docx
+  ioslides_presentation:
+    highlight: haddock
+    slide_level: 3
+  beamer_presentation:
+    keep_tex: true
+    latex_engine: xelatex
+    toc: true
+    pandoc_args:
+    - --listing
+    - --filter
+    - pandoc-crossref
+    slide_level: 3
+    template: ./style/beamer-template.tex
+csl: ./style/chinese-gb7714-2005-numeric.csl
+css: ./style/markdown.css
+bibliography: Bibfile.bib
+eqnPrefixTemplate: ($$i$$)
+institute: 中南财经政法大学统计与数学学院
+link-citations: true
+linkReferences: true
+chapters: true
+tableEqns: false
+autoEqnLabels: false
+---
+
+
+```{r setup, echo=F, purl=F}
+knitr::opts_knit$set(root.dir = getwd())
+knitr::opts_chunk$set(echo = TRUE, results = 'hide')
+knitr::opts_chunk$set(warning = FALSE, message=FALSE)
+knitr::opts_chunk$set(out.height="0.5\\textwidth", fig.width=5, fig.height=3, fig.align="center")
+```
+
+```{r prepare, echo=F, purl=F}
+rm(list=ls())
+options(digits=4)
+options(scipen=100)
+graphics.off()
+Sys.setlocale("LC_ALL", "Chinese")
+```
+
+# 构建数据集
+
+导入数据，建立数据框，提取GDP变量形成Y向量，提取Labor,Kapital,Technology,Energy四个变量加上截距向量构成设计矩阵X。
+```{python}
+import pandas as pd 
+Dat = pd.read_excel('./GDP.xls',index_col = 'Year')
+Dat.head()
+dat=Dat[['GDP','Labor','Kapital','Technology','Energy']].dropna() #删除含空值的行
+dat.head()
+
+X=dat[['Labor','Kapital','Technology','Energy']]
+y=dat['GDP']
+```
+
+# 初步查看数据集信息
+```{python}
+dat.describe()
+import matplotlib.pyplot as plt 
+import seaborn as sns
+sns.pairplot(dat, x_vars=['Labor','Kapital','Technology','Energy'], y_vars='GDP',kind="reg", size=5, aspect=0.7)
+plt.suptitle('Multivariate scatter plot')
+plt.show()
+```
+从GDP与Labor、Kapital、Technology、Energy的散点图可以看出，GDP与Kapital、Technology、Energy具有线性关系，可能与lnLabor呈线性关系。
+
+
+# 构建模型
+构建训练集与测试集来构建模型并进行验证
+```{python}
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+X_train,X_test, y_train, y_test = train_test_split(X,y,test_size = 0.3,random_state=1)
+linreg=LinearRegression().fit(X_train,y_train)
+linreg
+
+feature_cols = ['Labor','Kapital','Technology','Energy']
+zipped=list(zip(feature_cols,linreg.coef_))
+print(zipped)
+print(linreg.intercept_)
+```
+
+用train_test_split来随机划分数据集，其中70%作为训练集，30%作为测试集，通过对训练集构建线性回归模型，可得出GDP关于Labor,Kapital,Technology,Energy的多元线性回归模型如下：$$
+GDP=2878.06-0.32743Labor+3.0804Kapital-76.4549Technology+0.34278Energy$$
+
+# 模型预测
+```{python}
+y_pred=linreg.predict(X_test)
+y_pred
+```
+# 模型评估
+```{python}
+print('R-squared: {:.3f}'.format (linreg.score(X_test, y_test)))
+```
+模型的拟合优度为0.984，说明模型拟合效果不错。 
+
