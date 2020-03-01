@@ -123,10 +123,16 @@ All.to_csv('All.csv')
 library(kableExtra) 
 library(knitr)
 ```
+
 ```{r All, eval=T, echo=F, results='markup', cache=F}
-All<-read.csv("./All.csv")     
-kable(All, row.names =F, align = "c", caption="全球每日新冠肺炎数据",
-     longtable = TRUE, booktabs = TRUE, linesep  = "")
+All<-read.csv("./All.csv") 
+colnames(All)=c('日期','确诊数','治愈数','死亡数')    
+kable(All, row.names =F, align = c("l", "c", "c", "c"), caption="全球每日新冠肺炎数据",
+     longtable = TRUE, booktabs = TRUE, escape = F) %>%
+    kable_styling(latex_options = c("striped", "scale_down", "repeat_header", "hold_position"),
+                  repeat_header_text = "(续)")%>%
+    kable_styling(full_width = T) %>%
+    column_spec(1, width = c("4.5cm"))
 ```
 
 
@@ -142,8 +148,14 @@ China_cases.to_csv('Chinacases.csv')
 ```
 ```{r Chinacases, eval=T, echo=F, results='markup', cache=F}
 Chinacases<-read.csv("./Chinacases.csv")     
-kable(Chinacases, row.names =F, align = "c", caption="中国大陆新冠肺炎数据",
-     longtable = TRUE, booktabs = TRUE, linesep  = "")
+colnames(Chinacases)=c('省份','确诊数','治愈数','死亡数')
+kable(Chinacases, row.names =F, align = c("l", "c", "c", "c"), caption="中国大陆新冠肺炎数据",
+     longtable = TRUE, booktabs = TRUE, escape = F) %>%
+    kable_styling(latex_options = c("striped", "scale_down", "repeat_header", "hold_position"),
+                  repeat_header_text = "(续)")%>%
+    kable_styling(full_width = T) %>%
+    column_spec(1, width = c("4.5cm"))
+
 ```
 
 
@@ -163,10 +175,16 @@ re_de=pd.DataFrame({'recover_rate':recover_rate1,'death_rate':death_rate1})
 re_de.to_csv('rede.csv')
 ```
 ```{r rede, eval=T, echo=F, results='markup', cache=F}
-rede<-read.csv("./rede.csv")     
-kable(rede, row.names =F, align = "c", caption="中国大陆治愈率 VS 死亡率",
-longtable = TRUE, booktabs = TRUE, linesep  = "")
+rede<-read.csv("./rede.csv")  
+colnames(rede)=c('日期','治愈率','死亡率')
+kable(rede,row.names =F,align = c("l", "c", "c"), caption="中国大陆治愈率 VS 死亡率",
+      longtable = TRUE, booktabs = TRUE) %>%
+    kable_styling(latex_options = c("striped", "scale_down", "repeat_header", "hold_position"),
+                  repeat_header_text = "(续)")%>%
+    kable_styling(full_width = T) %>%
+    column_spec(1, width = c("4.5cm"))
 ```
+
 
 ## 其他地区治愈率 VS 死亡率
 
@@ -186,10 +204,14 @@ other_re_de.to_csv('otherrede.csv')
 
 ```
 ```{r otherrede, eval=T, echo=F, results='markup', cache=F}
-otherrede<-read.csv("./otherrede.csv")     
-kable(otherrede, row.names =F, align = "c", caption="其他地区治愈率 VS 死亡率
-",
-longtable = TRUE, booktabs = TRUE, linesep  = "")
+otherrede<-read.csv("./otherrede.csv")
+colnames(otherrede)=c('日期','治愈率','死亡率')     
+kable(otherrede,row.names =F,align = c("l", "c", "c"), caption="其他地区治愈率 VS 死亡率",
+      longtable = TRUE, booktabs = TRUE) %>%
+    kable_styling(latex_options = c("striped", "scale_down", "repeat_header", "hold_position"),
+                  repeat_header_text = "(续)")%>%
+    kable_styling(full_width = T) %>%
+    column_spec(1, width = c("4.5cm"))
 ```
 
 
@@ -205,10 +227,14 @@ others_countries = others_countries.groupby('Country/Region').sum()
 others_countries.to_csv('otherscountries.csv')
 ```
 ```{r otherscountries, eval=T, echo=F, results='markup', cache=F}
-otherscountries<-read.csv("./otherscountries.csv")     
-kable(otherscountries, row.names =F, align = "c", caption="世界其他地区
-疫情数量"
-,longtable = TRUE, booktabs = TRUE, linesep  = "")
+otherscountries<-read.csv("./otherscountries.csv") 
+colnames(otherscountries)=c('地区','确诊数','治愈数','死亡数')
+kable(otherscountries, row.names =F, align = c("l", "c", "c", "c"), caption="世界其他地区疫情数量",
+     longtable = TRUE, booktabs = TRUE, escape = F) %>%
+    kable_styling(latex_options = c("striped", "scale_down", "repeat_header", "hold_position"),
+                  repeat_header_text = "(续)")%>%
+    kable_styling(full_width = T) %>%
+    column_spec(1, width = c("4.5cm"))
 ```
 
 
@@ -219,25 +245,29 @@ kable(otherscountries, row.names =F, align = "c", caption="世界其他地区
 import matplotlib.pyplot as plt 
 plt.rcParams['font.sans-serif']=['SimHei']#用来正常显示中文标签
 plt.rcParams['axes.unicode_minus']=False#用来显示正常负号
-plt.figure(figsize=(12,5))
-plt.plot(all_confirmed,c='r',label='确诊',marker ='o')
-plt.plot(all_recovered,c = 'b',label = '治愈',marker = 'o')
-plt.plot(all_deaths,c = 'lime',label = '死亡',marker = 'o')
-plt.xticks(rotation=45,size=10)
-plt.yticks(size=20)
-plt.xlabel('时 间',size = 20)
-plt.ylabel('数 目',size = 20)
-plt.title('全球疫情变化趋势',size = 30)
-plt.legend(loc = "upper left",fontsize = 20)
-plt.show()
+plt.figure(figsize=(40,20))
+plt.plot(all_confirmed,c='r',label='确诊',marker ='o',linewidth=5,markersize=15)
+plt.plot(all_recovered,c = 'b',label = '治愈',marker = 'o',linewidth=5,markersize=15)
+plt.plot(all_deaths,c = 'lime',label = '死亡',marker = 'o',linewidth=5,markersize=15)
+plt.xticks(rotation=45,size=30)
+plt.yticks(size=40)
+plt.xlabel('时 间',size = 60)
+plt.ylabel('数 目',size = 60)
+plt.title('全球疫情变化趋势',size = 70)
+plt.legend(loc = "upper left",fontsize = 45)
+plt.show()  
 ```
 ## 中国大陆每个省份的疫情数量图
 ```{python}
 Mainland_china = China_cases.sort_values(by='confirmed',ascending=True)
-Mainland_china.plot(kind='barh', figsize=(12,5), color = ['red','blue','lime'], width=1, rot=2)
-plt.title('中国大陆各省市疫情数量',size=30)
+Mainland_china.plot(kind='barh', figsize=(20,10), color = ['red','blue','lime'],
+width=1, rot=2)
+plt.title('中国大陆各省市疫情数量', size=30)
 plt.ylabel('省/市',size=20)
 plt.xlabel('数量',size = 20)
+plt.yticks(size=20)
+plt.xticks(size=15)
+plt.legend(bbox_to_anchor=(0.95,0.95),fontsize = 20)
 plt.show()
 ```
 
@@ -246,15 +276,15 @@ plt.show()
 
 ## 中国大陆治愈率VS死亡率趋势图
 ```{python}
-plt.figure(figsize=(12,5))
-plt.plot(recover_rate, color = 'blue', label = '治愈率', marker = 'o')
-plt.plot(death_rate, color = 'lime', label = '死亡率', marker = 'o')
-plt.title('中国大陆治愈率 VS 死亡率',size=30)
-plt.ylabel('数量',size=20)
-plt.xlabel('时间',size=20)
-plt.xticks(rotation=45,size=10)
-plt.yticks(size=15)
-plt.legend(loc = "upper left",fontsize = 20)
+plt.figure(figsize=(40,20))
+plt.plot(recover_rate, color = 'blue', label = '治愈率', marker = 'o',linewidth=5,markersize=15)
+plt.plot(death_rate, color = 'lime', label = '死亡率', marker = 'o',linewidth=5,markersize=15)
+plt.title('中国大陆治愈率 VS 死亡率',size=70)
+plt.ylabel('数量',size=60)
+plt.xlabel('时间',size=60)
+plt.xticks(rotation=45,size=30)
+plt.yticks(size=40)
+plt.legend(loc = "upper left",fontsize = 45)
 plt.show()
 ```
 
@@ -262,29 +292,26 @@ plt.show()
 
 ## 其他地区治愈率 VS 死亡率趋势图
 ```{python}
-plt.figure(figsize=(12,5))
-plt.plot(other_recover_rate, color = 'blue', label = '治愈率', marker = 'o')
-plt.plot(other_death_rate, color = 'lime', label = '死亡率', marker = 'o')
-plt.title('其他地区治愈率 VS 死亡率',size=30)
-plt.ylabel('数量',size=20)
-plt.xlabel('时间',size=20)
-plt.xticks(rotation=45,size=10)
-plt.yticks(size=15)
-plt.legend(loc = "upper left",fontsize = 20)
+plt.figure(figsize=(40,20))
+plt.plot(other_recover_rate, color = 'blue', label = '治愈率', marker = 'o',linewidth=5,markersize=15)
+plt.plot(other_death_rate, color = 'lime', label = '死亡率', marker = 'o',linewidth=5,markersize=15)
+plt.title('其他地区治愈率 VS 死亡率',size=65)
+plt.ylabel('数量',size=60)
+plt.xlabel('时间',size=60)
+plt.xticks(rotation=45,size=30)
+plt.yticks(size=40)
+plt.legend(loc = "upper left",fontsize = 50)
 plt.show()
 ```
 ## 世界其他地区疫情数量
 ```{python}
-others_countries.sort_values(by = 'confirmed',ascending = True).plot(kind='barh', 
-figsize=(20,10), color = ['red','blue','lime'], 
-width=1, rot=2)
+others_countries.sort_values(by = 'confirmed',ascending = True).plot(kind='barh', figsize=(20,10), color = ['red','blue','lime'], width=1, rot=2)
 plt.title('世界其他地区疫情数量', size=30)
 plt.ylabel('Country/Region',size = 20)
 plt.xlabel('数量',size = 20)
 plt.yticks(size=10)
 plt.xticks(size=15)
 plt.legend(bbox_to_anchor=(0.95,0.95),fontsize = 20)
-plt.show()
 ```
 
 # 绘制疫情地图
@@ -318,12 +345,14 @@ world_map.save("wordmap.html")
 import webbrowser
 webbrowser.open('wordmap.html')
 ```
-```{r fig1,eval=T, echo=F,fig.cap="亚洲地区疫情扩散图",dev="png",results='markup', cache=F}
+
+```{r fig1,eval=T, echo=F,out.width="90%", fig.align='center',fig.cap="亚洲地区疫情扩散图",dev="png",results='markup', cache=F}
 include_graphics("./wordmap.png")
 ```
 
 用folium绘制每日疫情扩散地图如图\@ref(fig:fig1)所示。这是一种可交互的地图，可以
-随意移动缩放，鼠标点击地图上红点，即可出现地区的疫情信息。
+随意移动缩放，鼠标点击地图上红点，即可出现地区的疫情信息。展示图为静态，运行代
+码，可在网页中出现动态图
 
 ## 用plotly绘制每日疫情扩散地图
 
@@ -369,11 +398,12 @@ title='亚洲地区疫情扩散图')
 fig.update(layout_coloraxis_showscale=False)
 fig.show()
 ```
-```{r fig2,eval=T, echo=F,fig.cap="亚洲地区疫情扩散图",dev="png",results='markup', cache=F}
+```{r fig2,eval=T, echo=F,out.width="90%", fig.align='center',fig.cap="亚洲地区疫情扩散图",dev="png",results='markup', cache=F}
 include_graphics("./map.png")
 ```
 
-用plotly绘制每日疫情扩散地图如图\@ref(fig:fig2)所示
+用plotly绘制每日疫情扩散地图如图\@ref(fig:fig2)所示，
+展示图为静态，运行代码，可在网页中出现动态图。
 
 
 
