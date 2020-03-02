@@ -3,6 +3,15 @@ title: "全球疫情分析"
 author: "SXM"
 date: "2020-02"
 output:
+  bookdown::pdf_document2:
+    keep_tex: true
+    latex_engine: xelatex
+    md_extensions: +east_asian_line_breaks
+    pandoc_args:
+    - --listing
+    - --filter
+    - pandoc-crossref
+    toc: false
   bookdown::html_document2:
     fig_caption: true
     highlight: haddock
@@ -16,15 +25,6 @@ output:
     - eqnPrefix=
     seq_numbering: false
     toc: true
-  bookdown::pdf_document2:
-    keep_tex: true
-    latex_engine: xelatex
-    md_extensions: +east_asian_line_breaks
-    pandoc_args:
-    - --listing
-    - --filter
-    - pandoc-crossref
-    toc: false
   slidy_presentation:
     highlight: haddock
   bookdown::word_document2:
@@ -76,38 +76,36 @@ Sys.setlocale("LC_ALL", "Chinese")
 ```
 
 # 读取数据及处理
-```{python}
+```{python,echo=TRUE}
 import pandas as pd
 import numpy as np 
 
 #疫情的确诊数（confirmed）
-confirmed = pd.read_csv('./time_series_19-covid-Confirmed.csv')
+path='./data/COVID-19/csse_covid_19_data/csse_covid_19_time_series/'
+confirmed = pd.read_csv(path+'time_series_19-covid-Confirmed.csv')
 
 #治愈数
-recovered = pd.read_csv('./time_series_19-covid-Recovered.csv')
+recovered = pd.read_csv(path+'time_series_19-covid-Recovered.csv')
 
 #死亡数
-deaths = pd.read_csv('./time_series_19-covid-Deaths.csv')
+deaths = pd.read_csv(path+'time_series_19-covid-Deaths.csv')
 
 print(confirmed.shape)
 print(recovered.shape)
 print(deaths.shape)
 ```
 
-confirmed表里面包含发生疫情的国家，经纬度，以及从2020年1月22日至2020年2月28日的
+confirmed表里面包含发生疫情的国家，经纬度，以及从2020年1月22日至今的
 每日的确诊数；
-recovered表则记录了治愈数；deaths表则记录了死亡数。三个表都是（101，42）维，
-即114行，42列。
+recovered表则记录了治愈数；deaths表则记录了死亡数。
 
 ## 查看发生疫情国家
 
-```{python}
+```{python echo=TRUE,results='markup'}
 countries = confirmed['Country/Region'].unique()
-print(countries)
-print(countries.shape[0])
+print('发生疫情国家：\n{}'.format(countries))
+print('发生疫情国家数：\n{}'.format(countries.shape[0]))
 ```
-
-截止2020.2.28，全世界共有61个国家有新冠肺炎病例。
 
 ## 每日所有地区新冠肺炎的确诊数，治愈数，死亡数。
 
@@ -116,7 +114,7 @@ all_confirmed = np.sum(confirmed.iloc[:,4:])
 all_recovered = np.sum(recovered.iloc[:,4:])
 all_deaths = np.sum(deaths.iloc[:,4:])
 All = pd.DataFrame({'all_confirmed':all_confirmed,'all_recovered':all_recovered,'all_deaths':all_deaths})
-All.to_csv('All.csv')
+All.to_csv('./data/All.csv')
 ```
 
 ```{r, echo=F}
@@ -125,7 +123,7 @@ library(knitr)
 ```
 
 ```{r All, eval=T, echo=F, results='markup', cache=F}
-All<-read.csv("./All.csv") 
+All<-read.csv("./data/All.csv") 
 colnames(All)=c('日期','确诊数','治愈数','死亡数')    
 kable(All, row.names =F, align = c("l", "c", "c", "c"), caption="全球每日新冠肺炎数据",
      longtable = TRUE, booktabs = TRUE, escape = F) %>%
@@ -138,16 +136,17 @@ kable(All, row.names =F, align = c("l", "c", "c", "c"), caption="全球每日新
 
 ## 中国大陆新冠肺炎的情况
 ```{python}
-last_update='2/28/20' #设置最新数据日期
+last_update=confirmed.columns[-1] #设置最新数据日期
 China_cases=confirmed[['Province/State',last_update]][confirmed['Country/Region']=='Mainland China']
 China_cases['recovered']=recovered[[last_update]][recovered['Country/Region']=='Mainland China']
 China_cases['deaths']=deaths[[last_update]][deaths['Country/Region']=='Mainland China']
 China_cases = China_cases.set_index('Province/State')
 China_cases = China_cases.rename(columns = {last_update:'confirmed'})
-China_cases.to_csv('Chinacases.csv')
+China_cases.to_csv('./data/Chinacases.csv')
 ```
+
 ```{r Chinacases, eval=T, echo=F, results='markup', cache=F}
-Chinacases<-read.csv("./Chinacases.csv")     
+Chinacases<-read.csv("./data/Chinacases.csv")     
 colnames(Chinacases)=c('省份','确诊数','治愈数','死亡数')
 kable(Chinacases, row.names =F, align = c("l", "c", "c", "c"), caption="中国大陆新冠肺炎数据",
      longtable = TRUE, booktabs = TRUE, escape = F) %>%
@@ -172,10 +171,10 @@ recover_rate1=(recover_rate/100).apply(lambda x: format(x, '.2%'))
 death_rate = (deaths_china/confirmed_china)*100
 death_rate1 = (death_rate/100).apply(lambda x: format(x, '.2%'))
 re_de=pd.DataFrame({'recover_rate':recover_rate1,'death_rate':death_rate1})
-re_de.to_csv('rede.csv')
+re_de.to_csv('./data/rede.csv')
 ```
 ```{r rede, eval=T, echo=F, results='markup', cache=F}
-rede<-read.csv("./rede.csv")  
+rede<-read.csv("./data/rede.csv")  
 colnames(rede)=c('日期','治愈率','死亡率')
 kable(rede,row.names =F,align = c("l", "c", "c"), caption="中国大陆治愈率 VS 死亡率",
       longtable = TRUE, booktabs = TRUE) %>%
@@ -200,11 +199,12 @@ other_recover_rate1=(other_recover_rate/100).apply(lambda x: format(x, '.2%'))
 other_death_rate = (deaths_others/confirmed_others)
 other_death_rate1 = (other_death_rate/100).apply(lambda x: format(x, '.2%'))
 other_re_de=pd.DataFrame({'recover_rate':other_recover_rate1,'death_rate':other_death_rate1})
-other_re_de.to_csv('otherrede.csv')
+other_re_de.to_csv('./data/otherrede.csv')
 
 ```
+
 ```{r otherrede, eval=T, echo=F, results='markup', cache=F}
-otherrede<-read.csv("./otherrede.csv")
+otherrede<-read.csv("./data/otherrede.csv")
 colnames(otherrede)=c('日期','治愈率','死亡率')     
 kable(otherrede,row.names =F,align = c("l", "c", "c"), caption="其他地区治愈率 VS 死亡率",
       longtable = TRUE, booktabs = TRUE) %>%
@@ -224,10 +224,10 @@ others['death'] = deaths[[last_update]][deaths['Country/Region'] != 'Mainland Ch
 others_countries = others.rename(columns = {last_update:'confirmed'})
 others_countries = others_countries.set_index('Country/Region')
 others_countries = others_countries.groupby('Country/Region').sum()
-others_countries.to_csv('otherscountries.csv')
+others_countries.to_csv('./data/otherscountries.csv')
 ```
 ```{r otherscountries, eval=T, echo=F, results='markup', cache=F}
-otherscountries<-read.csv("./otherscountries.csv") 
+otherscountries<-read.csv("./data/otherscountries.csv") 
 colnames(otherscountries)=c('地区','确诊数','治愈数','死亡数')
 kable(otherscountries, row.names =F, align = c("l", "c", "c", "c"), caption="世界其他地区疫情数量",
      longtable = TRUE, booktabs = TRUE, escape = F) %>%
@@ -241,78 +241,97 @@ kable(otherscountries, row.names =F, align = c("l", "c", "c", "c"), caption="世
 
 # 数据可视化
 ## 全球疫情变化趋势图
-```{python}
+```{python world, fig.cap="全球疫情变化趋势", dev='pdf',eval=TRUE}
 import matplotlib.pyplot as plt 
+import matplotlib.ticker as tk
+fig,ax = plt.subplots() 
 plt.rcParams['font.sans-serif']=['SimHei']#用来正常显示中文标签
 plt.rcParams['axes.unicode_minus']=False#用来显示正常负号
-plt.figure(figsize=(40,20))
-plt.plot(all_confirmed,c='r',label='确诊',marker ='o',linewidth=5,markersize=15)
-plt.plot(all_recovered,c = 'b',label = '治愈',marker = 'o',linewidth=5,markersize=15)
-plt.plot(all_deaths,c = 'lime',label = '死亡',marker = 'o',linewidth=5,markersize=15)
-plt.xticks(rotation=45,size=30)
-plt.yticks(size=40)
-plt.xlabel('时 间',size = 60)
-plt.ylabel('数 目',size = 60)
-plt.title('全球疫情变化趋势',size = 70)
-plt.legend(loc = "upper left",fontsize = 45)
-plt.show()  
-```
-## 中国大陆每个省份的疫情数量图
-```{python}
-Mainland_china = China_cases.sort_values(by='confirmed',ascending=True)
-Mainland_china.plot(kind='barh', figsize=(20,10), color = ['red','blue','lime'],
-width=1, rot=2)
-plt.title('中国大陆各省市疫情数量', size=30)
-plt.ylabel('省/市',size=20)
-plt.xlabel('数量',size = 20)
-plt.yticks(size=20)
-plt.xticks(size=15)
-plt.legend(bbox_to_anchor=(0.95,0.95),fontsize = 20)
+xt=[d[:-3] for d in all_confirmed.index]#取月日
+ax.plot(xt,all_confirmed,c='r',label='确诊(例）',marker ='o',linewidth=1,markersize=2)
+ax.plot(xt,all_recovered,c = 'b',label = '治愈(例）',marker = 'o',linewidth=1,markersize=2)
+ax.plot(xt,all_deaths,c = 'lime',label = '死亡(例）',marker = 'o',linewidth=1,markersize=2)
+ax.xaxis.set_major_locator(tk.MultipleLocator(2))
+ax.xaxis.set_minor_locator(tk.MultipleLocator(1))
+plt.xticks(rotation=45)
+plt.yticks()
+plt.xlabel('时 间')
+plt.ylabel('数 目')
+plt.legend(loc = "upper left",fontsize = 8)
+plt.tight_layout()
 plt.show()
 ```
 
-可以看到，湖北省三项数据高居第一位，且远远高于其他省份。
+图\@ref(fig:world)显示，新冠肺炎确诊人数逐渐上升，治愈人数也在上升，死亡人数上升缓慢。
+
+## 中国大陆每个省份的疫情数量图
+```{python Mainland, fig.cap="中国大陆各省市疫情数量", out.height="80%",out.width="95%",dev='pdf',eval=TRUE}
+Mainland_china = China_cases.sort_values(by='confirmed',ascending=True)
+Mainland_china.plot(kind='barh', color = ['red','blue','lime'],figsize=(20,30),
+width=1)
+plt.ylabel('省/市',fontsize = 35)
+plt.xlabel('数量',fontsize = 35)
+plt.yticks(fontsize = 30)
+plt.xticks(fontsize = 30)
+plt.legend(bbox_to_anchor=(0.95,0.95),fontsize = 30)
+plt.tight_layout()
+plt.show()
+```
+
+从图\@ref(fig:Mainland)可以看到，湖北省三项数据高居第一位，且远远高于其他省份。
 
 
 ## 中国大陆治愈率VS死亡率趋势图
-```{python}
-plt.figure(figsize=(40,20))
-plt.plot(recover_rate, color = 'blue', label = '治愈率', marker = 'o',linewidth=5,markersize=15)
-plt.plot(death_rate, color = 'lime', label = '死亡率', marker = 'o',linewidth=5,markersize=15)
-plt.title('中国大陆治愈率 VS 死亡率',size=70)
-plt.ylabel('数量',size=60)
-plt.xlabel('时间',size=60)
-plt.xticks(rotation=45,size=30)
-plt.yticks(size=40)
-plt.legend(loc = "upper left",fontsize = 45)
+```{python cn, fig.cap="中国大陆治愈率 VS 死亡率", dev='pdf',eval=TRUE}
+fig,ax = plt.subplots() 
+xt=[d[:-3] for d in all_confirmed.index]#取月日
+ax.plot(xt,recover_rate, color = 'blue', label = '治愈率（%）', marker = 'o',linewidth=1,markersize=2)
+ax.plot(xt,death_rate, color = 'lime', label = '死亡率（%）', marker = 'o',linewidth=1,markersize=2)
+ax.xaxis.set_major_locator(tk.MultipleLocator(2))
+ax.xaxis.set_minor_locator(tk.MultipleLocator(1))
+plt.ylabel('数量')
+plt.xlabel('时间')
+plt.xticks(rotation=45)
+plt.yticks()
+plt.legend(loc = "upper left",fontsize = 8)
+plt.tight_layout()
 plt.show()
 ```
 
-在1月25日-1月31日期间死亡率略高于治愈率，但其他时间段，治愈率远远高于死亡率
+图\@ref(fig:cn)显示在1月25日-1月31日期间，中国大陆死亡率略高于治愈率，但其他时间段，治愈率远远高于死亡率
 
 ## 其他地区治愈率 VS 死亡率趋势图
-```{python}
-plt.figure(figsize=(40,20))
-plt.plot(other_recover_rate, color = 'blue', label = '治愈率', marker = 'o',linewidth=5,markersize=15)
-plt.plot(other_death_rate, color = 'lime', label = '死亡率', marker = 'o',linewidth=5,markersize=15)
-plt.title('其他地区治愈率 VS 死亡率',size=65)
-plt.ylabel('数量',size=60)
-plt.xlabel('时间',size=60)
-plt.xticks(rotation=45,size=30)
-plt.yticks(size=40)
-plt.legend(loc = "upper left",fontsize = 50)
+```{python other, fig.cap="其他地区治愈率 VS 死亡率", dev='pdf',eval=TRUE}
+fig,ax = plt.subplots() 
+xt=[d[:-3] for d in all_confirmed.index]#取月日
+ax.plot(xt,other_recover_rate, color = 'blue', label = '治愈率（%）', marker = 'o',linewidth=1,markersize=2)
+ax.plot(xt,other_death_rate, color = 'lime', label = '死亡率（%）', marker = 'o',linewidth=1,markersize=2)
+ax.xaxis.set_major_locator(tk.MultipleLocator(2))
+ax.xaxis.set_minor_locator(tk.MultipleLocator(1))
+plt.ylabel('数量')
+plt.xlabel('时间')
+plt.xticks(rotation=45)
+plt.yticks()
+plt.legend(loc = "upper left",fontsize = 8)
+plt.tight_layout()
 plt.show()
 ```
+从图\@ref(fig:other)可以看出，其他地区的治愈率从2月24日开始显著下降，说明新冠肺炎疫情已经蔓延至其他国家，患病人数普遍增加导致治愈率下降。
+
 ## 世界其他地区疫情数量
-```{python}
-others_countries.sort_values(by = 'confirmed',ascending = True).plot(kind='barh', figsize=(20,10), color = ['red','blue','lime'], width=1, rot=2)
-plt.title('世界其他地区疫情数量', size=30)
-plt.ylabel('Country/Region',size = 20)
-plt.xlabel('数量',size = 20)
-plt.yticks(size=10)
-plt.xticks(size=15)
-plt.legend(bbox_to_anchor=(0.95,0.95),fontsize = 20)
+```{python othercountries, fig.cap="世界其他地区疫情数量",out.height="80%",out.width="95%",dev='pdf',eval=TRUE}
+others_countries.sort_values(by = 'confirmed',ascending = True).plot(kind='barh', color = ['red','blue','lime'],figsize=(20,30), width=1)
+
+plt.ylabel('Country/Region',fontsize = 35)
+plt.xlabel('数量',fontsize = 35)
+plt.yticks(fontsize = 30)
+plt.xticks(fontsize = 30)
+plt.legend(bbox_to_anchor=(0.95,0.95),fontsize = 30)
+plt.tight_layout()
+plt.show()
 ```
+图\@ref(fig:othercountries)显示，韩国、意大利、伊朗，日本疫情较为严重，成为除中国外疫情较为严重的国家。
+
 
 # 绘制疫情地图
 ## 用folium包绘制
@@ -346,11 +365,11 @@ import webbrowser
 webbrowser.open('wordmap.html')
 ```
 
-```{r fig1,eval=T, echo=F,out.width="90%", fig.align='center',fig.cap="亚洲地区疫情扩散图",dev="png",results='markup', cache=F}
+```{r wordmap,eval=T, echo=F,out.width="90%", fig.align='center',fig.cap="亚洲地区疫情扩散图",dev="png",results='markup', cache=F}
 include_graphics("./wordmap.png")
 ```
 
-用folium绘制每日疫情扩散地图如图\@ref(fig:fig1)所示。这是一种可交互的地图，可以
+用folium绘制每日疫情扩散地图如图\@ref(fig:wordmap)所示。这是一种可交互的地图，可以
 随意移动缩放，鼠标点击地图上红点，即可出现地区的疫情信息。展示图为静态，运行代
 码，可在网页中出现动态图
 
@@ -361,13 +380,13 @@ import plotly.express as px
 
 #确诊数
 confirmed = confirmed.melt(id_vars = ['Province/State', 'Country/Region', 'Lat', 'Long'],var_name='date',value_name = 'confirmed') 
-#confirmed.head()
+
 
 #把date列转换成datetime格式
 confirmed['date_dt'] = pd.to_datetime(confirmed.date, format="%m/%d/%y")
 confirmed.date = confirmed.date_dt.dt.date
 confirmed.rename(columns={'Country/Region': 'country', 'Province/State': 'province'}, inplace=True)
-#confirmed
+
 
 #治愈数、死亡数
 recovered = recovered.melt(id_vars = ['Province/State','Country/Region', 'Lat', 'Long'],var_name='date',value_name = 'recovered')
@@ -398,11 +417,11 @@ title='亚洲地区疫情扩散图')
 fig.update(layout_coloraxis_showscale=False)
 fig.show()
 ```
-```{r fig2,eval=T, echo=F,out.width="90%", fig.align='center',fig.cap="亚洲地区疫情扩散图",dev="png",results='markup', cache=F}
+```{r map,eval=T, echo=F,out.width="90%", fig.align='center',fig.cap="亚洲地区疫情扩散图",dev="png",results='markup', cache=F}
 include_graphics("./map.png")
 ```
 
-用plotly绘制每日疫情扩散地图如图\@ref(fig:fig2)所示，
+用plotly绘制每日疫情扩散地图如图\@ref(fig:map)所示，
 展示图为静态，运行代码，可在网页中出现动态图。
 
 
