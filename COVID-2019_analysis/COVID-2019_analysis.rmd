@@ -344,10 +344,14 @@ others['death'] = deaths[[last_update]][deaths['Country/Region'] != 'Mainland Ch
 others_countries = others.rename(columns = {last_update:'confirmed'})
 others_countries.loc['94'] = ['Mainland China',30.9756,112.2707,confirmed_china[-1],recovered_china[-1],deaths_china[-1]]
 ```
+others_countries.loc['36'] = ['Mainland China',30.9756,112.2707,confirmed_china[-1],recovered_china[-1],deaths_china[-1]]
+
+others_countries.to_csv('./data/1.csv')
+type(others_countries.index[-1])
 
 ```{python}
 import folium
-world_map = folium.Map(location=[10, -20], zoom_start=2.3,tiles='Stamen Toner')
+world_map = folium.Map(location=[10, -20], zoom_start=2.3,tiles='Stamen Terrain')
 
 for lat, lon, value, name in zip(others_countries['Lat'], others_countries['Long'], 
 others_countries['confirmed'], others_countries['Country/Region']):
@@ -365,7 +369,7 @@ import webbrowser
 webbrowser.open('wordmap.html')
 ```
 
-```{r wordmap,eval=T, echo=F,out.width="90%", fig.align='center',fig.cap="亚洲地区疫情扩散图",dev="png",results='markup', cache=F}
+```{r wordmap,eval=T, echo=F,out.width="93%", fig.align='center',fig.cap="亚洲地区疫情扩散图",dev="png",results='markup', cache=F}
 include_graphics("./wordmap.png")
 ```
 
@@ -417,7 +421,7 @@ title='亚洲地区疫情扩散图')
 fig.update(layout_coloraxis_showscale=False)
 fig.show()
 ```
-```{r map,eval=T, echo=F,out.width="90%", fig.align='center',fig.cap="亚洲地区疫情扩散图",dev="png",results='markup', cache=F}
+```{r map,eval=T, echo=F,out.width="95%", fig.align='center',fig.cap="亚洲地区疫情扩散图",dev="png",results='markup', cache=F}
 include_graphics("./map.png")
 ```
 
