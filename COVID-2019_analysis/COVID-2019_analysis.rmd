@@ -344,10 +344,7 @@ others['death'] = deaths[[last_update]][deaths['Country/Region'] != 'Mainland Ch
 others_countries = others.rename(columns = {last_update:'confirmed'})
 others_countries.loc['94'] = ['Mainland China',30.9756,112.2707,confirmed_china[-1],recovered_china[-1],deaths_china[-1]]
 ```
-others_countries.loc['36'] = ['Mainland China',30.9756,112.2707,confirmed_china[-1],recovered_china[-1],deaths_china[-1]]
 
-others_countries.to_csv('./data/1.csv')
-type(others_countries.index[-1])
 
 ```{python}
 import folium
