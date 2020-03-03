@@ -241,7 +241,7 @@ kable(otherscountries, row.names =F, align = c("l", "c", "c", "c"), caption="世
 
 # 数据可视化
 ## 全球疫情变化趋势图
-```{python world, fig.cap="全球疫情变化趋势", dev='pdf',eval=TRUE}
+```{python world, fig.cap="全球疫情变化趋势",out.width="100%",out.height='35%', dev='pdf',eval=TRUE}
 import matplotlib.pyplot as plt 
 import matplotlib.ticker as tk
 fig,ax = plt.subplots() 
@@ -282,7 +282,7 @@ plt.show()
 
 
 ## 中国大陆治愈率VS死亡率趋势图
-```{python cn, fig.cap="中国大陆治愈率 VS 死亡率", dev='pdf',eval=TRUE}
+```{python cn, fig.cap="中国大陆治愈率 VS 死亡率",out.width="100%",out.height='35%', dev='pdf',eval=TRUE}
 fig,ax = plt.subplots() 
 xt=[d[:-3] for d in all_confirmed.index]#取月日
 ax.plot(xt,recover_rate, color = 'blue', label = '治愈率（%）', marker = 'o',linewidth=1,markersize=2)
@@ -301,7 +301,7 @@ plt.show()
 图\@ref(fig:cn)显示在1月25日-1月31日期间，中国大陆死亡率略高于治愈率，但其他时间段，治愈率远远高于死亡率
 
 ## 其他地区治愈率 VS 死亡率趋势图
-```{python other, fig.cap="其他地区治愈率 VS 死亡率", dev='pdf',eval=TRUE}
+```{python other, fig.cap="其他地区治愈率 VS 死亡率",out.width="100%",out.height='35%', dev='pdf',eval=TRUE}
 fig,ax = plt.subplots() 
 xt=[d[:-3] for d in all_confirmed.index]#取月日
 ax.plot(xt,other_recover_rate, color = 'blue', label = '治愈率（%）', marker = 'o',linewidth=1,markersize=2)
