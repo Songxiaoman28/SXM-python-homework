@@ -319,7 +319,7 @@ plt.show()
 从图\@ref(fig:other)可以看出，其他地区的治愈率从2月24日开始显著下降，说明新冠肺炎疫情已经蔓延至其他国家，患病人数普遍增加导致治愈率下降。
 
 ## 世界其他地区疫情数量
-```{python othercountries, fig.cap="世界其他地区疫情数量",out.height="80%",out.width="95%",dev='pdf',eval=TRUE}
+```{python othercountries, fig.cap="世界其他地区疫情数量",out.height="95%",out.width="95%",dev='pdf',eval=TRUE}
 others_countries.sort_values(by = 'confirmed',ascending = True).plot(kind='barh', color = ['red','blue','lime'],figsize=(20,30), width=1)
 
 plt.ylabel('Country/Region',fontsize = 35)
