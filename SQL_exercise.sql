@@ -563,3 +563,12 @@ GROUP BY c.country,city.city;
 
 /*6.找出每个国家按字母排序是排末位的城市中最高的支付金额*/
 
+/*每个国家字母排序的城市最高支付金额*/
+SELECT c.country,city.city,max(p.amount) max_amount
+FROM payment p 
+INNER JOIN staff s USING (staff_id)
+INNER JOIN address a USING (address_id)
+INNER JOIN city city USING (city_id)
+INNER JOIN country c USING (country_id)
+GROUP BY c.country,city.city
+ORDER BY c.country;
