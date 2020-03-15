@@ -5,7 +5,7 @@
 
 -- RBMS :postgres
 CREATE database db2;
-\c db2
+\c db2;
 
 CREATE TABLE Departments (
   Code INTEGER PRIMARY KEY,

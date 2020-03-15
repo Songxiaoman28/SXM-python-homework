@@ -1,7 +1,7 @@
 -- LINK: The_computer_store
 -- RBMS :postgres
 CREATE database db1;
-\c db1
+\c db1;
 
 CREATE TABLE Manufacturers (
   Code INTEGER,
